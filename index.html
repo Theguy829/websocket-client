@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Client</title>
+</head>
+<body>
+    <h2>WebSocket Client</h2>
+
+    <label for="ws-url">WebSocket Server URL:</label>
+    <input type="text" id="ws-url" value="ws://localhost:8080/ws" style="width: 300px;">
+    <button id="connect-btn">Connect</button>
+    <p id="status">Status: Not connected</p>
+
+    <div id="chat" style="display:none;">
+        <input type="text" id="message" placeholder="Type your message..." style="width: 300px;">
+        <button id="send-btn">Send</button>
+        <div id="messages" style="margin-top: 20px;"></div>
+    </div>
+
+    <script>
+        let socket;
+
+        document.getElementById('connect-btn').onclick = function () {
+            const url = document.getElementById('ws-url').value;
+            socket = new WebSocket(url);
+
+            socket.onopen = function () {
+                document.getElementById('status').innerText = 'Status: Connected';
+                document.getElementById('chat').style.display = 'block';
+                addMessage('✅ Connected to ' + url);
+            };
+
+            socket.onmessage = function (event) {
+                addMessage('📨 Server: ' + event.data);
+            };
+
+            socket.onclose = function () {
+                document.getElementById('status').innerText = 'Status: Disconnected';
+                document.getElementById('chat').style.display = 'none';
+                addMessage('❌ Connection closed');
+            };
+
+            socket.onerror = function (error) {
+                addMessage('⚠️ Error: ' + error.message);
+            };
+        };
+
+        document.getElementById('send-btn').onclick = function () {
+            const msg = document.getElementById('message').value;
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(msg);
+                addMessage('🧑 You: ' + msg);
+                document.getElementById('message').value = '';
+            } else {
+                addMessage('❌ Not connected to server');
+            }
+        };
+
+        function addMessage(text) {
+            const messagesDiv = document.getElementById('messages');
+            const p = document.createElement('p');
+            p.textContent = text;
+            messagesDiv.appendChild(p);
+        }
+    </script>
+</body>
+</html>
